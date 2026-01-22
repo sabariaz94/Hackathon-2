@@ -1,0 +1,154 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+env/
+venv/
+ENV/
+
+# Build outputs
+dist/
+build/
+target/
+out/
+
+# Testing
+coverage/
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pip-log
+
+# Environment variables
+.env*
+!.env.example
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Icon?
+.apdisk
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Next.js
+.next/
+out/
+.next/cache/
+
+# Python
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.coveragerc
+.tox/
+tox.ini
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
+*.tmproj
+*.sublime-project
+*.sublime-workspace
+.pydevproject
+
+# FastAPI / Backend
+*.db
+*.db-journal
+instance/
+.webassets-cache
+celerybeat-schedule
+celerybeat.pid
+
+# Database
+*.sqlite
+*.sqlite3
+.dynamodb/
+
+# Local development
+.dockerenv
+.devcontainer/
+
+# Secrets and sensitive data
+secrets/
+secret.json
+config/secrets.json
+*.key
+*.pem
+*.crt
+*.cert
+*.der
+*.p12
+*.pfx
+*.p7b
+*.p7c
+*.p7r
+*.srl
+
+# Documentation
+docs/_build/
+_site/
+
+# CI/CD
+.semaphore/
+.circleci/
+.github/workflows/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+temp/
+
+# Coverage
+coverage.xml
+*.gcov
+*.lcov
+.info
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Package managers
+node_modules/
+jspm_packages/
+web_modules/
+*.lock
+.yarn-integrity
+.yarn/
+.cache/
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

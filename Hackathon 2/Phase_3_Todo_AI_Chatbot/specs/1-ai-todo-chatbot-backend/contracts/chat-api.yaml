@@ -1,0 +1,71 @@
+openapi: 3.0.0
+info:
+  title: AI Todo Chatbot API
+  version: 1.0.0
+  description: API for the AI Todo Chatbot backend
+
+paths:
+  /api/chat:
+    post:
+      summary: Process user message and return AI response
+      description: Stateless endpoint that processes user messages using AI and returns responses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: The user's message to the AI assistant
+                  example: "Add task buy milk"
+                conversation_id:
+                  type: integer
+                  description: Optional conversation ID to continue existing conversation
+                  example: 123
+              required:
+                - message
+      responses:
+        '200':
+          description: Successful response from the AI assistant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation_id:
+                    type: integer
+                    description: The conversation ID (newly created if not provided)
+                    example: 123
+                  response:
+                    type: string
+                    description: The AI assistant's response
+                    example: "Task added: buy milk"
+                  tool_calls:
+                    type: array
+                    description: Optional list of tool calls made by the AI
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of the tool called
+                          example: "add_task"
+                        arguments:
+                          type: object
+                          description: Arguments passed to the tool
+                          example:
+                            user_id: "user123"
+                            title: "buy milk"
+        '401':
+          description: Unauthorized - invalid or missing JWT token
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
