@@ -1,0 +1,64 @@
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://10.255.255.254:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 78.8s
+ ○ Compiling / ...
+ ✓ Compiled / in 14.1s (764 modules)
+ GET / 200 in 23217ms
+ GET / 200 in 861ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 10.1s (838 modules)
+ GET /login 200 in 13440ms
+ ○ Compiling /signup ...
+ ✓ Compiled /signup in 4.4s (847 modules)
+ GET /signup 200 in 7188ms
+ GET / 200 in 3747ms
+ GET / 200 in 1125ms
+ GET /login 200 in 491ms
+ GET /signup 200 in 364ms
+ GET / 200 in 372ms
+ GET / 200 in 293ms
+ ○ Compiling /todos ...
+ ✓ Compiled /todos in 20.1s (938 modules)
+ GET /todos 200 in 22435ms
+ GET /todos 200 in -1646ms
+ ○ Compiling /chatbot ...
+ ⚠ ./app/chatbot/page.tsx
+Attempted import error: 'sendChatMessage' is not exported from '@/lib/api' (imported as 'sendChatMessage').
+
+Import trace for requested module:
+./app/chatbot/page.tsx
+
+./app/chatbot/page.tsx
+Attempted import error: 'sendChatMessage' is not exported from '@/lib/api' (imported as 'sendChatMessage').
+
+Import trace for requested module:
+./app/chatbot/page.tsx
+ GET /chatbot 200 in 13061ms
+ GET /chatbot 200 in 1755ms
+ GET /chatbot 200 in 603ms
+ GET /login 200 in 378ms
+ GET /login 200 in 301ms
+ GET / 200 in 312ms
+ GET / 200 in 227ms
+ GET /todos 200 in 403ms
+ GET /chatbot 200 in 488ms
+ GET /login 200 in 240ms
+ GET /login 200 in 186ms
+ GET / 200 in 266ms
+ GET / 200 in -2624ms
+ GET /todos 200 in 322ms
+ GET /chatbot 200 in 888ms
+ GET /login 200 in 268ms
+ GET /login 200 in 282ms
+ GET / 200 in 306ms
+ GET / 200 in 285ms
+ GET /todos 200 in 345ms
+ GET /chatbot 200 in 1964ms
+ GET /login 200 in 389ms
+ GET / 200 in 266ms
+ GET / 200 in 293ms
+ GET / 200 in 1018ms
