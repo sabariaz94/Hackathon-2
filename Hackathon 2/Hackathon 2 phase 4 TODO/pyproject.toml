@@ -1,0 +1,21 @@
+[project]
+name = "todo-phase-i"
+version = "0.1.0"
+description = "Console Todo Application - Phase I"
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
