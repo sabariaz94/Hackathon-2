@@ -1,0 +1,34 @@
+# ServiceAccount for backend pods
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: todo-backend-sa
+  namespace: todo-chatbot
+  labels:
+    app: backend
+---
+# Role granting read access to secrets and configmaps
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: todo-backend-role
+  namespace: todo-chatbot
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps"]
+    verbs: ["get", "list"]
+---
+# Bind the role to the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: todo-backend-rolebinding
+  namespace: todo-chatbot
+subjects:
+  - kind: ServiceAccount
+    name: todo-backend-sa
+    namespace: todo-chatbot
+roleRef:
+  kind: Role
+  name: todo-backend-role
+  apiGroup: rbac.authorization.k8s.io

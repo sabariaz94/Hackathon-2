@@ -1,0 +1,594 @@
+openapi: 3.1.0
+info:
+  title: AI-Powered Todo Chatbot API
+  description: |
+    Backend API for the AI-Powered Todo Chatbot application.
+    Provides authentication, task management via AI chat, and reminder functionality.
+  version: 1.0.0
+  contact:
+    name: Phase III Development Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.todobot.onrender.com
+    description: Production server (Render)
+
+tags:
+  - name: Authentication
+    description: User registration and login
+  - name: Chat
+    description: AI-assisted task management via conversation
+  - name: Conversations
+    description: Chat history management
+  - name: Health
+    description: Service health checks
+
+paths:
+  # ============================================
+  # AUTHENTICATION ENDPOINTS
+  # ============================================
+  /api/auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Create a new user account
+      description: Register a new user with name, email, and password
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            example:
+              name: "John Doe"
+              email: "john@example.com"
+              password: "SecurePass123"
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input (validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: "Password must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number"
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: "Email already registered"
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate user
+      description: Login with email and password, returns JWT token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "john@example.com"
+              password: "SecurePass123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: "Invalid email or password"
+        '429':
+          description: Too many login attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: "Too many login attempts. Please try again in 15 minutes."
+
+  # ============================================
+  # CHAT ENDPOINTS
+  # ============================================
+  /api/{user_id}/chat:
+    post:
+      tags:
+        - Chat
+      summary: Send message to AI assistant
+      description: |
+        Send a message to the AI assistant for task management.
+        The AI can create, view, update, complete, and delete tasks via natural language.
+      operationId: sendMessage
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            example:
+              message: "Add a task to buy groceries tomorrow at 3pm"
+              conversation_id: null
+      responses:
+        '200':
+          description: Message processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ============================================
+  # CONVERSATION ENDPOINTS
+  # ============================================
+  /api/{user_id}/conversations:
+    get:
+      tags:
+        - Conversations
+      summary: List user conversations
+      description: Get all conversations for the authenticated user, sorted by most recent
+      operationId: listConversations
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          description: Maximum number of conversations to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of conversations to skip
+      responses:
+        '200':
+          description: Conversations retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/{user_id}/conversations/{conversation_id}:
+    get:
+      tags:
+        - Conversations
+      summary: Get conversation with messages
+      description: Get a specific conversation with its full message history
+      operationId: getConversation
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/ConversationId'
+      responses:
+        '200':
+          description: Conversation retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                detail: "Conversation not found"
+
+    patch:
+      tags:
+        - Conversations
+      summary: Update conversation title
+      description: Update the title of a conversation
+      operationId: updateConversation
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/ConversationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateConversationRequest'
+      responses:
+        '200':
+          description: Conversation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Conversation not found
+
+    delete:
+      tags:
+        - Conversations
+      summary: Delete conversation
+      description: Delete a conversation and all its messages
+      operationId: deleteConversation
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/ConversationId'
+      responses:
+        '204':
+          description: Conversation deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Conversation not found
+
+  # ============================================
+  # HEALTH ENDPOINT
+  # ============================================
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check if the service is running
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  # ============================================
+  # SECURITY SCHEMES
+  # ============================================
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /api/auth/login or /api/auth/signup
+
+  # ============================================
+  # PARAMETERS
+  # ============================================
+  parameters:
+    UserId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: User's unique identifier (must match authenticated user)
+
+    ConversationId:
+      name: conversation_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Conversation's unique identifier
+
+  # ============================================
+  # RESPONSES
+  # ============================================
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            detail: "Not authenticated"
+
+    Forbidden:
+      description: Access denied - user doesn't own this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            detail: "Access denied"
+
+  # ============================================
+  # SCHEMAS
+  # ============================================
+  schemas:
+    # --- Authentication ---
+    SignupRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: User's display name
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: User's email address
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: Password (8+ chars, 1 uppercase, 1 lowercase, 1 number)
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token (7-day expiry)
+        token_type:
+          type: string
+          example: "bearer"
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        email_verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    # --- Chat ---
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: User's message to the AI assistant
+        conversation_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Existing conversation ID (null to start new conversation)
+
+    ChatResponse:
+      type: object
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+          description: Conversation ID (new or existing)
+        message:
+          $ref: '#/components/schemas/MessageResponse'
+        tool_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolResult'
+          description: Results from any tool calls made by the AI
+
+    MessageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+        tool_calls:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    ToolResult:
+      type: object
+      properties:
+        tool_name:
+          type: string
+          description: Name of the tool called
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: object
+          description: Tool-specific result data
+
+    # --- Conversations ---
+    ConversationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ConversationListResponse:
+      type: object
+      properties:
+        conversations:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/ConversationResponse'
+              - type: object
+                properties:
+                  last_message:
+                    type: string
+                    nullable: true
+                    description: Preview of the last message
+        total:
+          type: integer
+          description: Total number of conversations
+
+    ConversationDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ConversationResponse'
+        - type: object
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: '#/components/schemas/MessageResponse'
+
+    UpdateConversationRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    # --- Tasks (via MCP tools, documented for reference) ---
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        completed:
+          type: boolean
+        reminder:
+          $ref: '#/components/schemas/ReminderResponse'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ReminderResponse:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: string
+          format: uuid
+        reminder_date:
+          type: string
+          format: date
+        reminder_day:
+          type: string
+          description: Day of week (Monday-Sunday)
+        reminder_time:
+          type: string
+          format: time
+        sent:
+          type: boolean
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    # --- Error ---
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
