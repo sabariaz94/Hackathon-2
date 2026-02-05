@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-chatbot.fullname" . }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "todo-chatbot.labels" . | nindent 4 }}
+    app: backend
+spec:
+  replicas: {{ .Values.replicaCount.backend }}
+  selector:
+    matchLabels:
+      app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: backend
+        version: v1
+      {{- if and .Values.dapr (eq (toString .Values.dapr.enabled) "true") }}
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "{{ .Values.dapr.backend.appId }}"
+        dapr.io/app-port: "{{ .Values.dapr.backend.appPort }}"
+      {{- end }}
+    spec:
+      {{- if .Values.securityContext }}
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: backend
+          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
+          imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.backend.port }}
+              name: http
+              protocol: TCP
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: JWT_SECRET
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: OPENAI_API_KEY
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: RESEND_API_KEY
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: BETTER_AUTH_SECRET
+            - name: ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-config
+                  key: ALLOWED_ORIGINS
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-config
+                  key: ENVIRONMENT
+            - name: FRONTEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-config
+                  key: FRONTEND_URL
+          resources:
+            {{- toYaml .Values.resources.backend | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.backend.liveness.path }}
+              port: {{ .Values.probes.backend.liveness.port }}
+            initialDelaySeconds: {{ .Values.probes.backend.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.backend.liveness.periodSeconds }}
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.backend.readiness.path }}
+              port: {{ .Values.probes.backend.readiness.port }}
+            initialDelaySeconds: {{ .Values.probes.backend.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.backend.readiness.periodSeconds }}
+            timeoutSeconds: 3
+            failureThreshold: 3

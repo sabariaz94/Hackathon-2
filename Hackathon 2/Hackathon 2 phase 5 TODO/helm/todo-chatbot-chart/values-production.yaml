@@ -1,0 +1,120 @@
+# Production values for cloud deployment
+# Override default values.yaml for production Kubernetes cluster
+
+namespace: todo-chatbot
+
+replicaCount:
+  backend: 2
+  frontend: 2
+
+image:
+  backend:
+    repository: ghcr.io/USERNAME/todo-backend
+    tag: latest
+    pullPolicy: Always
+  frontend:
+    repository: ghcr.io/USERNAME/todo-frontend
+    tag: latest
+    pullPolicy: Always
+
+service:
+  backend:
+    type: ClusterIP
+    port: 8000
+  frontend:
+    type: ClusterIP
+    port: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: todo.example.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /
+          pathType: Prefix
+          service: frontend
+  tls:
+    - secretName: todo-tls
+      hosts:
+        - todo.example.com
+
+resources:
+  backend:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  frontend:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+config:
+  environment: "production"
+  allowedOrigins: "https://todo.example.com"
+  frontendUrl: "https://todo.example.com"
+  backendUrl: "https://todo.example.com/api"
+  mcpServerPort: "8001"
+
+secrets:
+  databaseUrl: ""
+  jwtSecret: ""
+  openaiApiKey: ""
+  resendApiKey: ""
+  betterAuthSecret: ""
+
+probes:
+  backend:
+    liveness:
+      path: /health
+      port: 8000
+      initialDelaySeconds: 15
+      periodSeconds: 30
+    readiness:
+      path: /health
+      port: 8000
+      initialDelaySeconds: 10
+      periodSeconds: 10
+  frontend:
+    liveness:
+      path: /
+      port: 3000
+      initialDelaySeconds: 15
+      periodSeconds: 30
+    readiness:
+      path: /
+      port: 3000
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+# Dapr sidecar injection configuration
+dapr:
+  enabled: true
+  backend:
+    appId: todo-backend
+    appPort: "8000"
+  frontend:
+    appId: todo-frontend
+    appPort: "3000"
+
+# Pod security context for production hardening
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL

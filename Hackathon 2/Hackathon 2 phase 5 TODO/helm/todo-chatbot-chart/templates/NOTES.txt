@@ -1,0 +1,28 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release name is: {{ .Release.Name }}
+Namespace: {{ .Values.namespace }}
+
+== Getting Started ==
+
+1. Check pod status:
+   kubectl get pods -n {{ .Values.namespace }}
+
+2. Access the frontend:
+   minikube service frontend-service -n {{ .Values.namespace }}
+
+3. Check backend health:
+   kubectl exec -it deployment/{{ include "todo-chatbot.fullname" . }}-backend -n {{ .Values.namespace }} -- curl localhost:{{ .Values.service.backend.port }}/health
+
+== AIOps Commands ==
+
+kubectl-ai "show all pods in {{ .Values.namespace }}"
+kagent "analyze {{ .Values.namespace }} namespace"
+docker ai "optimize my Dockerfiles"
+
+== Useful Commands ==
+
+  helm list
+  helm upgrade {{ .Release.Name }} ./helm/todo-chatbot-chart
+  helm rollback {{ .Release.Name }}
+  helm uninstall {{ .Release.Name }}

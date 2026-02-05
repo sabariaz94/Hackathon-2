@@ -1,0 +1,81 @@
+namespace: todo-chatbot
+
+replicaCount:
+  backend: 2
+  frontend: 2
+
+image:
+  backend:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: Never
+  frontend:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: Never
+
+service:
+  backend:
+    type: ClusterIP
+    port: 8000
+  frontend:
+    type: LoadBalancer
+    port: 3000
+
+resources:
+  backend:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  frontend:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+config:
+  environment: "local"
+  allowedOrigins: "http://localhost:3000,http://frontend-service:3000"
+  frontendUrl: "http://frontend-service:3000"
+  backendUrl: "http://backend-service:8000"
+  mcpServerPort: "8001"
+
+secrets:
+  databaseUrl: ""
+  jwtSecret: ""
+  openaiApiKey: ""
+  resendApiKey: ""
+  betterAuthSecret: ""
+
+ingress:
+  enabled: false
+  host: todo.local
+
+probes:
+  backend:
+    liveness:
+      path: /health
+      port: 8000
+      initialDelaySeconds: 10
+      periodSeconds: 30
+    readiness:
+      path: /health
+      port: 8000
+      initialDelaySeconds: 5
+      periodSeconds: 10
+  frontend:
+    liveness:
+      path: /
+      port: 3000
+      initialDelaySeconds: 10
+      periodSeconds: 30
+    readiness:
+      path: /
+      port: 3000
+      initialDelaySeconds: 5
+      periodSeconds: 10

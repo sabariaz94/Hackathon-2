@@ -1,0 +1,20 @@
+# Minikube local overrides - reduced resources for local development
+replicaCount:
+  backend: 1
+  frontend: 1
+
+resources:
+  backend:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+  frontend:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
