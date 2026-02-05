@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  title: Todo Chatbot - Kubernetes Health Contracts
+  description: Health and readiness endpoints for Kubernetes probes
+  version: 1.0.0
+
+paths:
+  /health:
+    get:
+      summary: Backend health check
+      description: Used by Kubernetes liveness and readiness probes
+      operationId: healthCheck
+      tags: [health]
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                  database:
+                    type: string
+                    enum: [connected, disconnected]
+                  timestamp:
+                    type: string
+                    format: date-time
+                required: [status]
+              example:
+                status: healthy
+                database: connected
+                timestamp: "2026-01-29T12:00:00Z"
+        "503":
+          description: Service unhealthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [unhealthy]
+                  error:
+                    type: string
+
+  /:
+    get:
+      summary: Frontend health check
+      description: Returns the Next.js application page (200 = healthy)
+      operationId: frontendHealth
+      tags: [health]
+      responses:
+        "200":
+          description: Frontend serving correctly
+        "503":
+          description: Frontend not ready

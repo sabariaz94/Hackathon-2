@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: todo-chatbot
+  labels:
+    app: backend
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: backend
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: backend
+          image: todo-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: JWT_SECRET
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: OPENAI_API_KEY
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: RESEND_API_KEY
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: BETTER_AUTH_SECRET
+            - name: ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-config
+                  key: ALLOWED_ORIGINS
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-config
+                  key: ENVIRONMENT
+            - name: FRONTEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-config
+                  key: FRONTEND_URL
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3

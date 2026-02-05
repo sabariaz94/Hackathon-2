@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-chatbot.fullname" . }}-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "todo-chatbot.labels" . | nindent 4 }}
+    app: frontend
+spec:
+  replicas: {{ .Values.replicaCount.frontend }}
+  selector:
+    matchLabels:
+      app: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: frontend
+          image: "{{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag }}"
+          imagePullPolicy: {{ .Values.image.frontend.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.frontend.port }}
+              name: http
+              protocol: TCP
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "/backend"
+            - name: BACKEND_INTERNAL_URL
+              value: "http://backend-service:{{ .Values.service.backend.port }}"
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: BETTER_AUTH_SECRET
+          resources:
+            {{- toYaml .Values.resources.frontend | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.frontend.liveness.path }}
+              port: {{ .Values.probes.frontend.liveness.port }}
+            initialDelaySeconds: {{ .Values.probes.frontend.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.frontend.liveness.periodSeconds }}
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.frontend.readiness.path }}
+              port: {{ .Values.probes.frontend.readiness.port }}
+            initialDelaySeconds: {{ .Values.probes.frontend.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.frontend.readiness.periodSeconds }}
+            timeoutSeconds: 3
+            failureThreshold: 3
