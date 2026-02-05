@@ -1,0 +1,23 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: todo-chatbot
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "${KAFKA_BOOTSTRAP_SERVERS}"
+    - name: authType
+      value: "password"
+    - name: saslUsername
+      value: "${KAFKA_SASL_USERNAME}"
+    - name: saslPassword
+      value: "${KAFKA_SASL_PASSWORD}"
+    - name: saslMechanism
+      value: "SCRAM-SHA-256"
+    - name: requiredAcks
+      value: "all"
+    - name: consumeRetryInterval
+      value: "100ms"
